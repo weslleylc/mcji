@@ -1,13 +1,9 @@
 import numpy as np
 import math
-from os.path import exists
-import pickle
 from ortools.sat.python import cp_model
 from pyitlib.discrete_random_variable import information_mutual_conditional
-from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from knncmi import cmi
 
 
 class MCJITransformer(BaseEstimator, TransformerMixin):
