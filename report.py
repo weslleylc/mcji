@@ -1,10 +1,12 @@
 import numpy as np
 import pandas as pd
 import sys
-from scipy.stats import rankdata, ks_2samp, mannwhitneyu, ttest_ind
+from scipy.stats import rankdata, ks_2samp, mannwhitneyu, ttest_ind, ttest_rel
 from scipy.stats import t
 from simpledb import SimpleDB
 
+
+from corrected_dependent_ttest import corrected_dependent_ttest
 
 def modified_t_student(a_score, b_score, n1, n2):
     # Compute the difference between the results
@@ -29,7 +31,7 @@ def modified_t_student(a_score, b_score, n1, n2):
     return Pvalue
 
 
-def calculate_df(df, description, f=ttest_ind):
+def calculate_df(df, description, f=ttest_rel):
     df['value'] = df['value'].astype(float)
     df['it'] = df['it'].astype(int)
     df['n_features'] = df['n_features'].astype(int)
@@ -48,9 +50,10 @@ def calculate_df(df, description, f=ttest_ind):
             if classifier != winner:
                 # statistic, pvalue = f(experiments[winner], experiments[classifier])
                 pvalue = modified_t_student(experiments[winner], experiments[classifier], n1, n2)
+                # _, _, _, pvalue = corrected_dependent_ttest(experiments[winner], experiments[classifier], n1, n2, alpha=0.05)
                 # current_df.loc[current_df['classifier'] == classifier, 'statistic'] = statistic
                 current_df.loc[current_df['classifier'] == classifier, 'pvalue'] = pvalue
-                if pvalue > 0.05:
+                if pvalue >= 0.05:
                     ties = True
                     current_df.loc[current_df['classifier'] == classifier, 'evaluation'] = 0
                 else:
@@ -80,6 +83,9 @@ columns = {'metric': 'text', 'value': 'text', 'classifier': 'text', 'n_features'
            'dataset': 'text', 'filename': 'text'}
 db = SimpleDB(columns=columns, audit_db_name="10x10")
 db_df = db.get_data()
+finished = db_df.groupby(['dataset'])['it'].count()
+finished = finished.loc[finished == 300].index
+db_df = db_df.loc[db_df['dataset'].isin(finished)]
 # db_df = db_df.loc[db_df['dataset'] == 'thyroid-disease-dis']
 
 df = calculate_df(db_df, description)
