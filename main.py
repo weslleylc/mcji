@@ -18,10 +18,11 @@ from simpledb import SimpleDB
 
 num_workers = int(mp.cpu_count() * 0.8)
 
-n_splits=10
+n_splits = 2
+n_repeats = 5
 metrics = [accuracy_score]
 internal_gss = StratifiedKFold(n_splits=2)
-gss = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=10, random_state=42)
+gss = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=42)
 
 train_size = 0.8
 folder = "/home/weslleylc/PycharmProjects/UCI/processed_data/classification/"
@@ -32,6 +33,9 @@ version = 1
 func_type = 'maximize'
 func_type = 'minimize'
 solver = ["saga"]
+
+db_name = "{}x{}".format(n_repeats, n_splits)
+
 
 def get_pipeline(cls, selector=None, memory="./cache"):
     if selector is not None:
@@ -131,7 +135,7 @@ columns = {'metric': 'text', 'value': 'text', 'classifier': 'text', 'n_features'
            'dataset': 'text', 'filename': 'text'}
 
 
-db = SimpleDB(columns=columns, audit_db_name="10x10")
+db = SimpleDB(columns=columns, audit_db_name=db_name)
 db.init_db()
 
 
